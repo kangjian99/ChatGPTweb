@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+
+<head>
+    <meta charset="UTF-8">
+    <title>GPT 3</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="info">
+    <h1 align="center">Model: {{ model }}</h1>
+    <div align="right"  style="margin-right: 25px;">
+            <h2>Temperature Guide</h2>
+            <p>Code Refactoring --- 0.2</p>
+            <p>Email Parser --- 0.3</p>
+            <p>Chat Bot --- 0.5</p>
+            <p>Summarise Text --- 0.5</p>
+            <p>Code Generation --- 0.8</p>
+            <p>Story Writing ---0.8</p>
+    </div>
+    </div>
+        <hr />
+
+         <main>
+        {% if message %} {{ message }} {% endif %}
+        <form method="post" onsubmit="submit.disabled=true" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="question">Keywords in the Question:</label>
+          <textarea id="question" name="question" placeholder="Type your keywords here." rows="2"></textarea>
+        </div>
+                <div class="form-group">
+          <label for="words">Words (input only once):</label>
+          <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1"></textarea>
+        </div>
+        <div class="form-group">
+  <label for="template_file">Template File (upload only once):</label>
+  <input type="file" id="template_file" name="template_file" accept=".txt">
+</div>
+        <div class="form-group" align="center">
+          <label for="temperature">Temperature:</label>
+          <div class="range-container">
+                <input type="range" name="temperature" id="tem" min=0 max=1 step=0.1 value=0.5 oninput="document.getElementById('num').value = this.value" title="Temperature slider">
+                <input type="text" id="num" placeholder="0.5" style="border: none;background: none; width: 30px;" disabled />
+          </div>
+        </div>
+         <div class="form-group" align="center">
+            <button type="submit" id="submit">Submit</button>
+         </div>
+        </form>
+        <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
+        {% if question %}
+        <div style="margin-top: 10px;">
+            <div style="text-align: left"><b>Legend:</b>
+                <pre id="question">{{ question }}</pre>
+            </div>
+            <hr />
+<div style="text-align: left"><b>{{ model }} - Tem={{ temperature }} :</b>
+    <div id="res-container" style="height: 300px; overflow-y: scroll; overflow-x: hidden;">
+        <pre style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res }}</pre>
+    </div>
+<script>
+    // 获取输出容器元素
+    let resContainer = document.getElementById('res-container');
+    // 滚动到输出容器元素中部位置
+    resContainer.scrollIntoView({ behavior: 'smooth' });
+</script>
+</div>
+
+        </div>
+        {% endif %}
+    </div>
+    </main>
+    <script src="/static/script.js"></script>
+</body>
+</html>

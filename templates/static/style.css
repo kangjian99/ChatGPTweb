@@ -1,0 +1,146 @@
+/* Reset default styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  color: #333;
+  background-color: #eee;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+  background: #1E90CC; /* 更浅的黑色背景 */
+  color: #F5F5F5; /* 更深的白色文字 */
+  }
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+p {
+  font-size: 14px;
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+li:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+textarea {
+  width: 100%;
+  resize: none;
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.range-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input[type='range'] {
+  width: 60%;
+  display: block;
+  margin-bottom: 10px;
+}
+
+input[type=text] {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+output {
+  width: 3rem;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+button[type='submit'] {
+  border: none;
+  background-color: #007bff;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button[type='submit']:hover {
+  background-color: #0069d9;
+}
+
+.loading {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.result-container {
+  margin-top: 2rem;
+}
+
+.result {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
