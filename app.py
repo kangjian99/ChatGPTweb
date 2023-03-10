@@ -1,10 +1,12 @@
 from flask import Flask, request, render_template, session, redirect
-from flask_restful import Resource, Api
 import openai
+import os
 
 model = 'gpt-3.5-turbo' # or text-davinci-003
+# 从环境变量中读取API密钥
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+
 app = Flask(__name__, static_folder='templates/static')
-api = Api(app)
 app.config['SECRET_KEY'] = 'Drmhe86EPcv0fN_81Zj-nA' # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
     
 def send_gpt(prompt, tem):
@@ -66,4 +68,3 @@ def get_request_json():
         session.clear()
         return render_template('chat.html', model=model, question=0)
 
-api.add_resource(ChatGPTweb, '/api/ChatGPTweb')
