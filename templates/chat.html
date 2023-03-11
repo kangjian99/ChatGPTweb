@@ -37,9 +37,12 @@
           <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1"></textarea>
         </div>
         <div class="form-group">
-  <label for="template_file">Template File (upload only once):</label>
+  <label for="template_file">Upload Prompt Template (.txt, upload only once):</label>
   <input type="file" id="template_file" name="template_file" accept=".txt">
-</div>
+  <label for="dropdown" style="display: inline-block;">Or select a template:</label>
+  <select id="dropdown" name="dropdown" data-pid="{{ pid }}" style="display: inline-block;">
+  </select>
+      </div>
         <div class="form-group" align="center">
           <label for="temperature">Temperature:</label>
           <div class="range-container">
@@ -62,18 +65,67 @@
     <div id="res-container" style="height: 300px; overflow-y: scroll; overflow-x: hidden;">
         <pre style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res }}</pre>
     </div>
-<script>
+    <script>
     // 获取输出容器元素
     let resContainer = document.getElementById('res-container');
     // 滚动到输出容器元素中部位置
     resContainer.scrollIntoView({ behavior: 'smooth' });
-</script>
+   </script>
+
+    <div id="copy-animation" class="hide">
+  <div class="message">已复制到剪贴板！</div>
+   </div>
+
+<button onclick="copyToClipboard()" style="float:right;">复制结果</button>
+<br>
+<form method="post">
+         <div class="form-group" align="center">
+         <button type="submit" name="clear" value="1" style="transform: scale(0.8);">Clear</button>
+         </div>
+</form>
+
+<style>
+.hide {
+  display: none;
+}
+
+#copy-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.message {
+  padding: 10px;
+  background-color: #ccc;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  animation: fade-in-out 3s ease-in-out;
+}
+
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+</style>
+
 </div>
 
         </div>
         {% endif %}
     </div>
     </main>
-    <script src="/static/script.js"></script>
+<script src="/static/script.js"></script>
 </body>
 </html>
