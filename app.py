@@ -38,33 +38,43 @@ def get_request_json():
 # 将messages键初始化为一个空列表，将这句代码包含在视图函数中通常是一个好的习惯，因为它确保应用程序在每个请求开始时都有一个干净的messages列表。
     if 'messages' not in session:
         session['messages'] = []
+    filename = 'prompts.txt'
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    prompts = {}
+    for i in range(0, len(lines)-1, 2):
+        prompts[lines[i].strip()] = lines[i+1].strip()
     if request.method == 'POST':
-        if len(request.form['question']) < 1:
-            return render_template(
-                'chat.html', question="NULL", res="Question can't be empty!")
-        keyword = request.form['question']
-        if session['messages'] == []:
-            words = int(request.form['words'])
-            template_file = request.files.get('template_file')
-            # Read template from file
-            if template_file.filename == '':
-                filename = 'prompt.txt'
-                with open(filename, 'r') as f:
-                    prompt_template = f.read()
-            else:
-                prompt_template = template_file.read().decode('utf-8')
-            question = f"{prompt_template.format(keyword=keyword, words=words)!s}"
+        print(request.form)
+        if 'clear' in request.form:
+            session.clear()
+            return redirect(url_for('get_request_json'))
         else:
-            question = keyword
-        temperature = float(request.form['temperature'])
-        print("======================================")
-        print("Receive the keyword:", keyword)
-        print("Receive the temperature:", temperature)
-        res = send_gpt(question, temperature)
-        print("Q：\n", question)
-        print("A：\n", res)
-        return render_template('chat.html', model=model, question=keyword, res=str(res), temperature=temperature)
+            if len(request.form['question']) < 1:
+                return render_template(
+                    'chat.html', question="NULL", res="Question can't be empty!")
+            keyword = request.form['question']
+            if session['messages'] == []:
+                words = int(request.form['words']) if request.form['words'] != '' else 500
+                template_file = request.files.get('template_file')
+                # Read template from file
+                if template_file.filename == '':
+                    dropdown = request.form.get('dropdown')
+                    prompt_template = list(prompts.values())[int(dropdown)-1]
+                else:
+                    prompt_template = template_file.read().decode('utf-8')
+                question = f"{prompt_template.format(keyword=keyword, words=words)!s}"
+            else:
+                question = keyword
+            temperature = float(request.form['temperature'])
+            print("======================================")
+            print("Receive the keyword:", keyword)
+            print("Receive the temperature:", temperature)
+            res = send_gpt(question, temperature)
+            print("Q：\n", question)
+            print("A：\n", res)
+            return render_template('chat.html', model=model, question=keyword, res=str(res), temperature=temperature, pid = ",".join(prompts.keys()))
     else:
         session.clear()
-        return render_template('chat.html', model=model, question=0)
+        return render_template('chat.html', model=model, question=0, pid = ",".join(prompts.keys()))
 
