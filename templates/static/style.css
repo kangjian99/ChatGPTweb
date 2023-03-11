@@ -14,6 +14,7 @@ body {
   font-size: 1rem;
   color: #333;
   background-color: #eee;
+  display: block;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -154,4 +155,38 @@ button[type='submit']:hover {
   font-size: 1rem;
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.hide {
+  display: none;
+}
+
+#copy-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.message {
+  padding: 10px;
+  background-color: #ccc;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  animation: fade-in-out 3s ease-in-out;
+}
+
+@keyframes fade-in-out {
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
