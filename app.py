@@ -89,7 +89,7 @@ def login():
         password = request.form['password']
         with open('username.txt', 'r') as f:
             usernames = [line.strip() for line in f.readlines()]
-        if username.lower() in [u.lower() for u in usernames] and (password == os.environ.get('Guest_PASSWORD') or os.environ.get('PASSWORD')):
+        if username.lower() in [u.lower() for u in usernames] and (password == '123456')):
             session['logged_in'] = True
             return redirect(url_for('get_request_json'))
         else:
