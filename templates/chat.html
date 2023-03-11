@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <title>GPT 3</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="http://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
 
 <body>
@@ -53,6 +54,7 @@
          <div class="form-group" align="center">
             <button type="submit" id="submit">Submit</button>
          </div>
+           <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
         </form>
         <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
         {% if question %}
@@ -81,7 +83,8 @@
          <div class="form-group" style="text-align: center;">
          <button type="submit" name="clear" value="1" style="transform: scale(0.8);">Clear</button>
          </div>
-</form>
+  <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
+  </form>
     <script>
     // 所有元素显示完成，滚动到最底部
     window.scroll({
@@ -96,6 +99,31 @@
         {% endif %}
     </div>
     </main>
+
+<script>
+function updateSession() {
+  $.ajax({
+    type: 'POST',
+    url: '/update-session',
+    success: function(response) {
+      if (response.success) {
+        setTimeout(updateSession, 5000);  // 5 秒钟后再次发送请求
+      } else {
+        alert('Failed to update session.');
+      }
+    },
+    error: function() {
+      alert('Failed to update session.');
+    }
+  });
+}
+
+$(function() {
+  // 开始更新会话状态
+  updateSession();
+});
+</script>
+
 <script src="/static/script.js"></script>
 </body>
 </html>
