@@ -107,7 +107,7 @@ function updateSession() {
     url: '/update-session',
     success: function(response) {
       if (response.success) {
-        setTimeout(updateSession, 5000);  // 5 秒钟后再次发送请求
+        setTimeout(updateSession, 50000);  // 5 秒钟后再次发送请求
       } else {
         alert('Failed to update session.');
       }
