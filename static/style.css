@@ -17,13 +17,6 @@ body {
   display: block;
 }
 
-@media (prefers-color-scheme: dark) {
-  body {
-  background: #1E90CC; /* 更浅的黑色背景 */
-  color: #F5F5F5; /* 更深的白色文字 */
-  }
-}
-
 header {
   display: flex;
   justify-content: space-between;
@@ -83,6 +76,13 @@ textarea {
   padding: 0.5rem;
   font-size: 1rem;
   line-height: 1.5;
+}
+
+.card-header {
+  background-color: #0d6ffe;  /* #1E90CC */
+  color: #FFFFFF;
+  font-size: 18px;
+  /* font-weight: bold; */
 }
 
 .range-container {
