@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>GPT 3</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 </head>
@@ -25,80 +26,86 @@
     </div>
     </div>
         <hr />
-
-         <main>
-        {% if message %} {{ message }} {% endif %}
-        <form method="post" onsubmit="submit.disabled=true" enctype="multipart/form-data">
-        <div class="form-group">
-          <label for="question">Keywords in the Question:</label>
-          <textarea id="question" name="question" placeholder="Type your keywords here." rows="2"></textarea>
+        
+        <div class="container">
+    <div class="row justify-content-center align-items-center vh-100">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center" style="font-weight:bold">文本生成器  模型-{{ model }}</div>
+                <div class="card-body">
+                    {% if message %} {{ message }} {% endif %}
+                    <form method="post" onsubmit="submit.disabled=true" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="question">Keywords in the Question:</label>
+                            <textarea id="question" name="question" placeholder="Type your keywords here." rows="2" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="words">Words (input only once):</label>
+                            <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="template_file">Upload Prompt Template (.txt, upload only once):</label>
+                            <div class="input-group mb-3">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="template_file" name="template_file" accept=".txt">
+                                </div>
+                                <div class="input-group-append align-items-center">
+                                    <label class="input-group-text  align-self-center" for="dropdown" style="margin-right: 10px;">Or select a template:</label>
+                                </div>
+                                <select id="dropdown" name="dropdown" data-pid="{{ pid }}" class="form-control-sm  align-self-center">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group mx-5" align="center">
+                            <label for="temperature">Temperature:</label>
+                            <div class="range-container">
+                                <input type="range" class="form-range" name="temperature" id="tem" min=0 max=1 step=0.1 value=0.5 oninput="document.getElementById('num').value = this.value" title="Temperature slider" class="custom-range">
+                                <input type="text" id="num" placeholder="0.5" style="border: none;background: none; width: 50px;" disabled class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group" align="center">
+                            <button id="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                        <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
+                    </form>
+                    <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
+                    
+                    {% if question %}
+<div class="card">
+    <div class="card-body align-items-center">
+        <div style="text-align: left"><b>Legend:</b>
+            <pre id="question">{{ question }}</pre>
         </div>
-                <div class="form-group">
-          <label for="words">Words (input only once):</label>
-          <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1"></textarea>
-        </div>
-        <div class="form-group">
-  <label for="template_file">Upload Prompt Template (.txt, upload only once):</label>
-  <input type="file" id="template_file" name="template_file" accept=".txt">
-  <label for="dropdown" style="display: inline-block;">Or select a template:</label>
-  <select id="dropdown" name="dropdown" data-pid="{{ pid }}" style="display: inline-block;">
-  </select>
-      </div>
-        <div class="form-group" align="center">
-          <label for="temperature">Temperature:</label>
-          <div class="range-container">
-                <input type="range" name="temperature" id="tem" min=0 max=1 step=0.1 value=0.5 oninput="document.getElementById('num').value = this.value" title="Temperature slider">
-                <input type="text" id="num" placeholder="0.5" style="border: none;background: none; width: 30px;" disabled />
-          </div>
-        </div>
-         <div class="form-group" align="center">
-            <button type="submit" id="submit">Submit</button>
-         </div>
-           <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
-        </form>
-        <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
-        {% if question %}
-        <div style="margin-top: 10px;">
-            <div style="text-align: left"><b>Legend:</b>
-                <pre id="question">{{ question }}</pre>
+        <hr />
+        <div style="text-align: left"><b>{{ model }} - Tem={{ temperature }} :</b>
+            <div class="card" style="height: 300px; overflow-y: scroll;">
+                <div class="card-body" style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res }}</div>
             </div>
-            <hr />
-<div style="text-align: left"><b>{{ model }} - Tem={{ temperature }} :</b>
-    <div id="res-container" style="height: 300px; overflow-y: scroll; overflow-x: hidden;">
-        <pre style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res }}</pre>
-    </div>
-    <script>
-    // 获取输出容器元素
-    // let resContainer = document.getElementById('res-container');
-    // 滚动到输出容器元素底部位置
-    // resContainer.scrollIntoView({ behavior: 'smooth', block: 'end'});
-   </script>
+            <div id="copy-animation" class="hide">
+                <div class="message">已复制到剪贴板！</div>
+            </div>
+            <button onclick="copyToClipboard()" class="btn btn-success" style="float:right; margin-top: 5px; transform: scale(0.8);">复制结果</button>
+            <br><br>
+            <form method="post">
+                <div class="form-group" style="text-align: center;">
+                    <button name="clear" value="1" class="btn btn-warning" style="transform: scale(0.8);">Clear</button>
+                </div>
+                <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
+            </form>
 
-    <div id="copy-animation" class="hide">
-  <div class="message">已复制到剪贴板！</div>
-   </div>
-<button onclick="copyToClipboard()" style="float:right;">复制结果</button>
-<br>
-<form method="post">
-         <div class="form-group" style="text-align: center;">
-         <button type="submit" name="clear" value="1" style="transform: scale(0.8);">Clear</button>
-         </div>
-  <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
-  </form>
+        </div>
+                {% endif %}
+    </div>
+</div>
     <script>
-    // 所有元素显示完成，滚动到最底部
+    // 所有元素显示完成，滚动到底部
+    let scrollPosition = document.body.scrollHeight - 200;
     window.scroll({
-    top: document.body.scrollHeight,
+    top: scrollPosition,
     behavior: 'smooth'
 });
    </script>
-
-</div>
-
-        </div>
-        {% endif %}
-    </div>
-    </main>
+   
 
 <script>
 function updateSession() {
