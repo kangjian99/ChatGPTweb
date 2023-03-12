@@ -2,8 +2,10 @@ from flask import Flask, request, render_template, session, redirect, url_for, f
 import openai
 import os
 
-openai.api_key = "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"
 model = 'gpt-3.5-turbo' # or text-davinci-003
+# 从环境变量中读取API密钥
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Drmhe86EPcv0fN_81Zj-nA' # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
     
@@ -87,7 +89,7 @@ def login():
         password = request.form['password']
         with open('username.txt', 'r') as f:
             usernames = [line.strip() for line in f.readlines()]
-        if username.lower() in [u.lower() for u in usernames] and (password == '123456' or password == os.environ.get('PASSWORD')):
+        if username.lower() in [u.lower() for u in usernames] and (password == os.environ.get('Guest_PASSWORD') or password == os.environ.get('PASSWORD')):
             session['logged_in'] = True
             return redirect(url_for('get_request_json'))
         else:
@@ -105,6 +107,3 @@ def logout():
 def update_session():
     session['logged_in'] = True  # 根据您的实际需求更新会话状态
     return jsonify({'success': True})
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5858)
