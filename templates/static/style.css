@@ -97,6 +97,16 @@ input[type='range'] {
   margin-bottom: 10px;
 }
 
+.form-range::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 0.5rem;
+  color: transparent;
+  cursor: pointer;
+  background-color:  #ced4da;
+  border-color: transparent;
+  border-radius: 1rem;
+ 
+}
 input[type=text] {
   text-align: center;
   font-size: 16px;
@@ -157,6 +167,10 @@ button[type='submit']:hover {
   white-space: pre-wrap;
 }
 
+#dropdown {
+font-size: 14px;
+}
+
 .hide {
   display: none;
 }
@@ -190,3 +204,4 @@ button[type='submit']:hover {
     opacity: 0;
   }
 }
+

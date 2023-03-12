@@ -11,7 +11,7 @@ function copyToClipboard() {
     animation.classList.remove("hide");
     setTimeout(function() {
       animation.classList.add("hide");
-    }, 3000);  // 3 秒后隐藏提示框
+    }, 2000);  // 2 秒后隐藏提示框
   });
 }
 
