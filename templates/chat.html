@@ -68,6 +68,9 @@
                         </div>
                         <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
                     </form>
+                    <form action="{{ url_for('logout') }}" method="get" style="float: right; transform: scale(0.8);">
+  <button class="btn btn-secondary">Logout</button>
+</form>
                     <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
                     
                     {% if question %}
