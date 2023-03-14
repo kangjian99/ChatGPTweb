@@ -22,7 +22,7 @@
             Chat Bot --- 0.5<br>
             Summarise Text --- 0.5<br>
             Code Generation --- 0.8<br>
-            Story Writing ---0.8</p>
+            Story Writing ---0.8<br>
     </div>
     </div>
         <hr />
@@ -79,8 +79,8 @@
         </div>
         <hr />
         <div style="text-align: left"><b>{{ model }} - Tem={{ temperature }} :</b>
-            <div class="card" style="height: 300px; overflow-y: scroll;">
-                <div class="card-body" style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res }}</div>
+            <div class="card" style="height: 400px; overflow-y: scroll;">
+                <div class="card-body" style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res|safe }}</div>
             </div>
             <div id="copy-animation" class="hide">
                 <div class="message">已复制到剪贴板！</div>
