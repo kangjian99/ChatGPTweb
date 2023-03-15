@@ -13,6 +13,9 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Drmhe86EPcv0fN_81Zj-nA' # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
     
+def check_password(password):
+    return password == os.environ.get('Guest_PASSWORD') or password == os.environ.get('PASSWORD')
+
 def send_gpt(prompt, tem):
     try:
         messages = session.get('messages', [])
@@ -87,12 +90,15 @@ def get_request_json():
                 return render_template('chat.html', model=model, question=keyword, res=markdown_message, temperature=temperature, pid = ",".join(prompts.keys()))
         else:
             session['messages'] = []
-            return render_template('chat.html', model=model, question=0, pid = ",".join(prompts.keys()))
+            if check_password(session['password']) == True:
+                return render_template('chat.html', model=model, question=0, pid = ",".join(prompts.keys()))
+            else:
+                return redirect(url_for('login'))
 
 def generate_markdown_message(text):
-    is_markdown = bool("#" in text or "*" in text or "|" in text) # 先判断是否markdown
+    is_markdown = bool("##" in text or "*" in text or "|" in text or "- " in text) # 先判断是否markdown
     if is_markdown:
-        text = text.replace("\n\n\n", "\n\n")
+        text = text.replace("\n\n", "\n")
         markdown_message = markdown2.markdown(text.strip(), extras=["tables"]) # 将返回的字符串转换为Markdown格式的HTML标记
         return markdown_message
     else:
@@ -132,7 +138,7 @@ def write_results_to_csv(result, filename):
         if file.tell() == 0:
             writer.writeheader()
         writer.writerow(result)
-
+        
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -140,12 +146,15 @@ def login():
         password = request.form['password']
         with open('username.txt', 'r') as f:
             usernames = [line.strip() for line in f.readlines()]
-        if username.lower() in [u.lower() for u in usernames] and (password == os.environ.get('Guest_PASSWORD') or password == os.environ.get('PASSWORD')):
-            session['logged_in'] = True
-            session['user_id'] = username
-            return redirect(url_for('get_request_json'))
+        if username.lower() in [u.lower() for u in usernames]:
+            if check_password(password) == True:
+                session.update(logged_in=True, user_id=username, password=password)
+                return redirect(url_for('get_request_json'))
+            else:
+                flash('密码错误')
+                return redirect(url_for('login'))
         else:
-            flash('用户名或密码错误')
+            flash('用户名不存在')
             return redirect(url_for('login'))
     else:
         return render_template('login.html')
