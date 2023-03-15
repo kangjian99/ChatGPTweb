@@ -16,7 +16,7 @@ class Config:
     GUEST_PASSWORD = os.environ.get('Guest_PASSWORD')
     PASSWORD = os.environ.get('PASSWORD')
 app.config.from_object(Config)
-
+ 
 def check_password(password):
     return password == app.config['GUEST_PASSWORD'] or app.config['PASSWORD']
 
