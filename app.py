@@ -18,7 +18,7 @@ class Config:
 app.config.from_object(Config)
 
 def check_password(password):
-    return password == app.config['GUEST_PASSWORD'] or app.config['PASSWORD']
+    return password == app.config['GUEST_PASSWORD'] or password == app.config['PASSWORD']
 
 def send_gpt(prompt, tem):
     try:
