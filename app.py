@@ -12,9 +12,13 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'Drmhe86EPcv0fN_81Zj-nA' # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
-    
+class Config:
+    GUEST_PASSWORD = os.environ.get('Guest_PASSWORD')
+    PASSWORD = os.environ.get('PASSWORD')
+app.config.from_object(Config)
+
 def check_password(password):
-    return password == os.environ.get('Guest_PASSWORD') or password == os.environ.get('PASSWORD')
+    return password == app.config['GUEST_PASSWORD'] or app.config['PASSWORD']
 
 def send_gpt(prompt, tem):
     try:
