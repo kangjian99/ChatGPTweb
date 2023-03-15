@@ -5,6 +5,7 @@ import re
 import csv
 from datetime import datetime
 import markdown2
+import pyodbc
 
 model = 'gpt-3.5-turbo' # or text-davinci-003
 # 从环境变量中读取API密钥
@@ -126,23 +127,36 @@ def count_chars(text):
     stats = {'user_id': session.get('user_id'), 'datetime': now, 'cn_char_count': cn_char_count, 'en_char_count': en_char_count, 'tokens': session.get('tokens')}
     print(stats)
     
-    # 将结果写入到 CSV 文件中
     if stats:
-        write_results_to_csv(stats, 'stats.csv')
+        insert_db(stats)
         print(session)
-    
-    # 更新 session 中的统计结果列表
-    #session['results'] = results
 
     return 'success'
 
-def write_results_to_csv(result, filename):
-    with open(filename, 'a', newline='') as file:  # 追加模式
-        writer = csv.DictWriter(file, fieldnames=result.keys())
-        if file.tell() == 0:
-            writer.writeheader()
-        writer.writerow(result)
-        
+def insert_db(result):
+    server = 'tcp:kj99.database.windows.net,1433'
+    database = 'database'
+    username = os.environ.get('DB_USERNAME')
+    password = os.environ.get('DB_PASSWORD')
+    driver = '{ODBC Driver 18 for SQL Server}'
+
+    # 连接到数据库
+    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+
+    # 获取要插入的结果数据
+    now = result.get('datetime')
+    user_id = result.get('user_id')
+    cn_char_count = result.get('cn_char_count')
+    en_char_count = result.get('en_char_count')
+    tokens = result.get('tokens')
+
+    # 构建插入语句并执行
+    query = "INSERT INTO stats (user_id, datetime, cn_char_count, en_char_count, tokens) VALUES (?, ?, ?, ?, ?);"
+    params = (user_id, now, cn_char_count, en_char_count, ', '.join(tokens))
+    cursor = cnxn.cursor()
+    cursor.execute(query, params)
+    cnxn.commit()
+    
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
