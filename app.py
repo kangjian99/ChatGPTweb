@@ -12,14 +12,27 @@ model = 'gpt-3.5-turbo' # or text-davinci-003
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'Drmhe86EPcv0fN_81Zj-nA' # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
-class Config:
-    GUEST_PASSWORD = os.environ.get('Guest_PASSWORD')
-    PASSWORD = os.environ.get('PASSWORD')
-app.config.from_object(Config)
+app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET_KEY') # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
 
-def check_password(password):
-    return password == app.config['GUEST_PASSWORD'] or password == app.config['PASSWORD']
+def authenticate_user(username, password):
+    server = 'tcp:kj99.database.windows.net,1433'
+    database = 'database'
+    db_username = os.environ.get('DB_USERNAME')
+    db_password = os.environ.get('DB_PASSWORD')
+    driver = '{ODBC Driver 18 for SQL Server}'
+
+    # 连接到 Azure SQL 数据库，并检查 user_info 表格中是否存在提供的用户名和密码
+    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};DATABASE={database};UID={db_username};PWD={db_password}')
+    cursor = cnxn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM user_info WHERE user_id = ? AND password = ?", (username, password))
+    count = cursor.fetchone()[0]
+
+    # 关闭数据库连接
+    cursor.close()
+    cnxn.close()
+
+    # 如果找到匹配的用户名和密码，则返回 True，否则返回 False
+    return count == 1
 
 def send_gpt(prompt, tem):
     try:
@@ -95,7 +108,7 @@ def get_request_json():
                 return render_template('chat.html', model=model, question=keyword, res=markdown_message, temperature=temperature, pid = ",".join(prompts.keys()))
         else:
             session['messages'] = []
-            if check_password(session['password']) == True:
+            if 'user_id' in session and 'password' in session and authenticate_user(session['user_id'], session['password']) == True:
                 return render_template('chat.html', model=model, question=0, pid = ",".join(prompts.keys()))
             else:
                 return redirect(url_for('login'))
@@ -133,12 +146,12 @@ def count_chars(text):
 def insert_db(result):
     server = 'tcp:kj99.database.windows.net,1433'
     database = 'database'
-    username = os.environ.get('DB_USERNAME')
-    password = os.environ.get('DB_PASSWORD')
+    db_username = os.environ.get('DB_USERNAME')
+    db_password = os.environ.get('DB_PASSWORD')
     driver = '{ODBC Driver 18 for SQL Server}'
 
     # 连接到数据库
-    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password}')
+    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={db_username};PWD={db_password}')
     
     # 获取要插入的结果数据
     now = result.get('datetime')
@@ -159,17 +172,11 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        with open('username.txt', 'r') as f:
-            usernames = [line.strip() for line in f.readlines()]
-        if username.lower() in [u.lower() for u in usernames]:
-            if check_password(password) == True:
-                session.update(logged_in=True, user_id=username, password=password)
-                return redirect(url_for('get_request_json'))
-            else:
-                flash('密码错误')
-                return redirect(url_for('login'))
+        if authenticate_user(username, password):
+            session.update(logged_in=True, user_id=username, password=password)
+            return redirect(url_for('get_request_json'))
         else:
-            flash('用户名不存在')
+            flash('用户名或密码错误')
             return redirect(url_for('login'))
     else:
         return render_template('login.html')
