@@ -152,7 +152,7 @@ def insert_db(result):
 
     # 构建插入语句并执行
     query = "INSERT INTO stats (user_id, datetime, cn_char_count, en_char_count, tokens) VALUES (?, ?, ?, ?, ?);"
-    params = (user_id, now, cn_char_count, en_char_count, ', '.join(tokens))
+    params = (user_id, now, cn_char_count, en_char_count, tokens, ', '.join(tokens))
     cursor = cnxn.cursor()
     cursor.execute(query, params)
     cnxn.commit()
