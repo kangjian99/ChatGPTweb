@@ -101,7 +101,7 @@ def get_request_json():
                 return redirect(url_for('login'))
 
 def generate_markdown_message(text):
-    is_markdown = bool("##" in text or "*" in text or "|" in text or "- " in text) # 先判断是否markdown
+    is_markdown = bool("##" in text or "*" in text or "|" in text or "- " in text or "`" in text) # 先判断是否markdown
     if is_markdown:
         text = text.replace("\n\n", "\n")
         markdown_message = markdown2.markdown(text.strip(), extras=["tables"]) # 将返回的字符串转换为Markdown格式的HTML标记
@@ -121,9 +121,6 @@ def count_chars(text):
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    # 获取 session 中的统计结果列表，如果不存在则初始化为空列表
-    # results = session.get('results', [])
-    # 将当前统计结果添加为字典
     stats = {'user_id': session.get('user_id'), 'datetime': now, 'cn_char_count': cn_char_count, 'en_char_count': en_char_count, 'tokens': session.get('tokens')}
     print(stats)
     
@@ -141,8 +138,8 @@ def insert_db(result):
     driver = '{ODBC Driver 18 for SQL Server}'
 
     # 连接到数据库
-    cnxn = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + server + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
-
+    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password}')
+    
     # 获取要插入的结果数据
     now = result.get('datetime')
     user_id = result.get('user_id')
@@ -152,11 +149,11 @@ def insert_db(result):
 
     # 构建插入语句并执行
     query = "INSERT INTO stats (user_id, datetime, cn_char_count, en_char_count, tokens) VALUES (?, ?, ?, ?, ?);"
-    params = (user_id, now, cn_char_count, en_char_count, tokens, ', '.join(tokens))
+    params = (user_id, now, cn_char_count, en_char_count, tokens)
     cursor = cnxn.cursor()
     cursor.execute(query, params)
     cnxn.commit()
-    
+        
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
