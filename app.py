@@ -53,7 +53,8 @@ def send_gpt(prompt, tem):
 #        return response["choices"][0]["text"] # text-davinci-003
         message = response["choices"][0]['message']['content']
         messages.append({"role": "assistant", "content": message})
-        session['messages'] = messages   
+        messages = messages[-2:] #仅保留最新两条
+        session['messages'] = messages
         return message
     except Exception as e:
         print(e)
