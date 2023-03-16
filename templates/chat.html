@@ -36,21 +36,21 @@
                     {% if message %} {{ message }} {% endif %}
                     <form method="post" onsubmit="submit.disabled=true" enctype="multipart/form-data">
                         <div class="form-group">
-                            <label for="question">Keywords in the Question:</label>
+                            <label for="question">问题或关键词（多个关键词以空格分开）：</label>
                             <textarea id="question" name="question" placeholder="Type your keywords here." rows="2" class="form-control"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="words">Words (input only once):</label>
+                            <label for="words">字数 (input only once):</label>
                             <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1" class="form-control"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="template_file">Upload Prompt Template (.txt, upload only once):</label>
+                            <label for="template_file">上传模板(.txt, upload only once):</label>
                             <div class="input-group mb-3">
                                 <div class="custom-file">
                                     <input type="file" class="custom-file-input" id="template_file" name="template_file" accept=".txt">
                                 </div>
                                 <div class="input-group-append align-items-center">
-                                    <label class="input-group-text  align-self-center" for="dropdown" style="margin-right: 10px;">Or select a template:</label>
+                                    <label class="input-group-text  align-self-center" for="dropdown" style="margin-right: 10px;">或选择输出模板</label>
                                 </div>
                                 <select id="dropdown" name="dropdown" data-pid="{{ pid }}" class="form-control-sm  align-self-center">
                                 </select>
@@ -74,11 +74,11 @@
                     {% if question %}
 <div class="card">
     <div class="card-body align-items-center">
-        <div style="text-align: left"><b>Legend:</b>
+        <div style="text-align: left"><b>问题：</b>
             <pre id="question">{{ question }}</pre>
         </div>
         <hr />
-        <div style="text-align: left"><b>{{ model }} - Tem={{ temperature }} :</b>
+        <div style="text-align: left"><b>回复 - Tem={{ temperature }} :</b>
             <div class="card" style="height: 400px; overflow-y: scroll;">
                 <div class="card-body" style="text-align:left; margin-top: 10px; white-space: pre-wrap;" id="res">{{ res|safe }}</div>
             </div>
