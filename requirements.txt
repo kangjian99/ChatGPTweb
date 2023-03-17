@@ -2,4 +2,5 @@ flask
 Openai
 Markdown2
 datetime
-pyodbc
+Pyodbc
+json

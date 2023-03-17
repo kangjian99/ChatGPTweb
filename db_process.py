@@ -1,4 +1,5 @@
 import pyodbc
+import json
 from settings import *
     
 def authenticate_user(username, password):
@@ -33,13 +34,12 @@ def insert_db(result, session=None):
     cursor.execute(query, params)
     
     if session:
-        question = session.get('question')
-        words = session.get('words')
-        dropdown = session.get('dropdown')
-        temperature = session.get('temperature')   
+        user_id = session.get('user_id')
+        messages = session.get('messages')
+        messages_str = json.dumps(messages, ensure_ascii=False)
         # 构建插入语句并执行
-        query = "INSERT INTO session (question, words, dropdown, temperature) VALUES (?, ?, ?, ?);"
-        params = (question, words, dropdown, temperature)
+        query = "INSERT INTO session (user_id, messages) VALUES (?, ?);"
+        params = (user_id, messages_str)
         cursor = cnxn.cursor()
         cursor.execute(query, params)
         
