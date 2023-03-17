@@ -1,37 +1,12 @@
 from flask import Flask, request, render_template, session, redirect, url_for, flash, jsonify
-import openai
-import os
 import re
 from datetime import datetime
 import markdown2
-import pyodbc
-
-model = 'gpt-3.5-turbo' # or text-davinci-003
-# 从环境变量中读取API密钥
-openai.api_key = os.environ.get('OPENAI_API_KEY')
+from settings import *
+from db_process import *
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET_KEY') # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
-
-def authenticate_user(username, password):
-    server = 'tcp:kj99.database.windows.net,1433'
-    database = 'database'
-    db_username = os.environ.get('DB_USERNAME')
-    db_password = os.environ.get('DB_PASSWORD')
-    driver = '{ODBC Driver 18 for SQL Server}'
-
-    # 连接到 Azure SQL 数据库，并检查 user_info 表格中是否存在提供的用户名和密码
-    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};DATABASE={database};UID={db_username};PWD={db_password}')
-    cursor = cnxn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM user_info WHERE user_id = ? AND password = ?", (username, password))
-    count = cursor.fetchone()[0]
-
-    # 关闭数据库连接
-    cursor.close()
-    cnxn.close()
-
-    # 如果找到匹配的用户名和密码，则返回 True，否则返回 False
-    return count == 1
+app.config['SECRET_KEY'] = SESSION_SECRET_KEY
 
 def send_gpt(prompt, tem):
     try:
@@ -138,36 +113,10 @@ def count_chars(text):
     print(stats)
     
     if stats:
-        insert_db(stats)
-        print(session)
+        insert_db(stats, session)
 
     return 'success'
-
-def insert_db(result):
-    server = 'tcp:kj99.database.windows.net,1433'
-    database = 'database'
-    db_username = os.environ.get('DB_USERNAME')
-    db_password = os.environ.get('DB_PASSWORD')
-    driver = '{ODBC Driver 18 for SQL Server}'
-
-    # 连接到数据库
-    cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={db_username};PWD={db_password}')
-    
-    # 获取要插入的结果数据
-    now = result.get('datetime')
-    user_id = result.get('user_id')
-    cn_char_count = result.get('cn_char_count')
-    en_char_count = result.get('en_char_count')
-    tokens = result.get('tokens')
-
-    # 构建插入语句并执行
-    query = "INSERT INTO stats (user_id, datetime, cn_char_count, en_char_count, tokens) VALUES (?, ?, ?, ?, ?);"
-    params = (user_id, now, cn_char_count, en_char_count, tokens)
-    cursor = cnxn.cursor()
-    cursor.execute(query, params)
-    cnxn.commit()
-    cnxn.close()
-        
+       
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
