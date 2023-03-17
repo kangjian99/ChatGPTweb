@@ -1,4 +1,5 @@
 import pyodbc
+from settings import *
     
 def authenticate_user(username, password):
     # 连接到 Azure SQL 数据库，并检查 user_info 表格中是否存在提供的用户名和密码
