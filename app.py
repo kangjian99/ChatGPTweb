@@ -2,7 +2,6 @@ from flask import Flask, request, render_template, session, redirect, url_for, f
 import openai
 import os
 import re
-import csv
 from datetime import datetime
 import markdown2
 import pyodbc
@@ -167,6 +166,7 @@ def insert_db(result):
     cursor = cnxn.cursor()
     cursor.execute(query, params)
     cnxn.commit()
+    cnxn.close()
         
 @app.route('/login', methods=['GET', 'POST'])
 def login():
