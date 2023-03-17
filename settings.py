@@ -3,7 +3,7 @@ import openai
 
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 model = 'gpt-3.5-turbo' # or text-davinci-003
-SESSION_SECRET_KEY = os.environ.get('OPENAI_API_KEY')
+SESSION_SECRET_KEY = os.environ.get('SESSION_SECRET_KEY')
 
 server = 'tcp:kj99.database.windows.net,1433'
 database = 'database'
