@@ -113,7 +113,7 @@ def count_chars(text):
     print(stats)
     
     if stats:
-        insert_db(stats, session)
+        insert_db(stats)
 
     return 'success'
        
