@@ -7,8 +7,9 @@ form.addEventListener('submit', () => {
 function copyToClipboard() {
   var resHtml = document.getElementById("res").innerHTML;
   var tmpElement = document.createElement('div');
-  tmpElement.innerHTML = resHtml;
+  tmpElement.innerHTML = resHtml.replace(/\n/g, '<br>');
   document.body.appendChild(tmpElement);
+  tmpElement.style.background = '#fff';
   tmpElement.style.position = 'absolute';
   tmpElement.style.left = '-9999px';
   var range = document.createRange();
