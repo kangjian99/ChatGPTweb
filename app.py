@@ -91,7 +91,7 @@ def get_request_json():
 def generate_markdown_message(text):
     if text.startswith("\n\n"):
         text = text[2:]
-    pattern = r'#{1,6}|\*{1,2}|\|.*\|.*\||^-{1,}\s|(?<!\S)```(?!\S)'
+    pattern = r'#{2,6}|\*{1,2}|\|.*\|.*\||^-{1,}\s|(?<!\S)```(?!\S)'
     is_markdown = re.search(pattern, text) # 先判断是否markdown
     if is_markdown:
         text = text.replace("\n\n", "\n")
@@ -144,6 +144,3 @@ def logout():
 def update_session():
     session['logged_in'] = True  # 根据您的实际需求更新会话状态
     return jsonify({'success': True})
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5858)
