@@ -144,3 +144,4 @@ def logout():
 def update_session():
     session['logged_in'] = True  # 根据您的实际需求更新会话状态
     return jsonify({'success': True})
+ 
