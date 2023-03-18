@@ -1,9 +1,9 @@
 from flask import Flask, request, render_template, session, redirect, url_for, flash, jsonify
 import re
 from datetime import datetime
-import markdown2
 from settings import *
 from db_process import *
+from md_process import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SESSION_SECRET_KEY
@@ -88,18 +88,6 @@ def get_request_json():
             else:
                 return redirect(url_for('login'))
 
-def generate_markdown_message(text):
-    if text.startswith("\n\n"):
-        text = text[2:]
-    pattern = r'#{2,6}(?!\w)|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\s*\||^-{1,}\s|(?<!\S)```(?!\S)'
-    is_markdown = re.search(pattern, text) # 先判断是否markdown
-    if is_markdown:
-        text = text.replace("\n\n", "\n")
-        markdown_message = markdown2.markdown(text.strip(), extras=["tables"]) # 将返回的字符串转换为Markdown格式的HTML标记
-        return markdown_message
-    else:
-        return text
-
 def count_chars(text):
     cn_pattern = re.compile(r'[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]') #匹配中文字符及标点符号
     cn_chars = cn_pattern.findall(text)
@@ -116,7 +104,7 @@ def count_chars(text):
     print(stats)
     
     if stats:
-        insert_db(stats)
+        insert_db(stats, session)
 
     return 'success'
        
@@ -144,4 +132,3 @@ def logout():
 def update_session():
     session['logged_in'] = True  # 根据您的实际需求更新会话状态
     return jsonify({'success': True})
- 
