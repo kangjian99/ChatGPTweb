@@ -91,7 +91,7 @@ def get_request_json():
 def generate_markdown_message(text):
     if text.startswith("\n\n"):
         text = text[2:]
-    pattern = r'#{2,6}|\*{1,2}|\|.*\|.*\||^-{1,}\s|(?<!\S)```(?!\S)'
+    pattern = r'#{2,6}(?!\w)|\*{1,2}|\|.*\|.*\||^-{1,}\s|(?<!\S)```(?!\S)'
     is_markdown = re.search(pattern, text) # 先判断是否markdown
     if is_markdown:
         text = text.replace("\n\n", "\n")
