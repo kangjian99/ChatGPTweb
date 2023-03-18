@@ -89,7 +89,10 @@ def get_request_json():
                 return redirect(url_for('login'))
 
 def generate_markdown_message(text):
-    is_markdown = bool("##" in text or "*" in text or "|" in text or "- " in text or "`" in text) # 先判断是否markdown
+    if text.startswith("\n\n"):
+        text = text[2:]
+    pattern = r'#{1,6}|\*{1,2}|\|.*\|.*\||^-{1,}\s|(?<!\S)```(?!\S)'
+    is_markdown = re.search(pattern, text) # 先判断是否markdown
     if is_markdown:
         text = text.replace("\n\n", "\n")
         markdown_message = markdown2.markdown(text.strip(), extras=["tables"]) # 将返回的字符串转换为Markdown格式的HTML标记
