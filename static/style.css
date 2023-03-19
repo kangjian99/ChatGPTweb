@@ -92,6 +92,34 @@ textarea {
   justify-content: center;
 }
 
+.card-body table {
+  width: 90%;
+  margin: 0 auto; /* 使用 margin 属性将表格居中显示 */
+  font-size: 14px;
+  margin-bottom: 1rem;
+  background-color: transparent;
+  border-collapse: collapse;
+  border-radius: 5px; /* 添加圆角 */
+  overflow: hidden; /* 避免边框过大时出现内容溢出 */
+}
+
+.card-body th,
+.card-body td {
+  padding: 0.25rem;
+  vertical-align: top;
+  border: 1px solid #c8ced3; /* 修改为左右和底部都有边框 */
+}
+
+.card-body th {
+  vertical-align: middle;
+  border-bottom: 1px solid #c8ced3;
+  background-color: #e5e5e5; /* 添加表头背景色 */
+}
+
+.card-body tbody + tbody {
+  border-top: 2px solid #c8ced3;
+}
+
 input[type='range'] {
   width: 60%;
   display: block;
