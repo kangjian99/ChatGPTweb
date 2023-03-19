@@ -4,7 +4,7 @@ import markdown
 def generate_markdown_message(text):
     if text.startswith("\n\n"):
         text = text[2:]
-    pattern = r'#{2,6}(?!\w)|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\||^-{1,}\s|(?<!\S)```(?!\S)'
+    pattern = r'#{2,6}(?!\w)|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\||^-{1,}\s|```'
     is_markdown = re.search(pattern, text) # 先判断是否markdown
     is_codeblock = bool('```' in text)
     if is_markdown:
