@@ -106,6 +106,7 @@ textarea {
 .card-body th,
 .card-body td {
   padding: 0.25rem;
+  padding-left: 0.5rem;
   vertical-align: top;
   border: 1px solid #c8ced3; /* 修改为左右和底部都有边框 */
 }
