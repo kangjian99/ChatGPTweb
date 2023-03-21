@@ -1,7 +1,22 @@
 let loading = document.getElementById('loading');
+let progressBar = document.getElementById('progress-bar');
 let form = document.querySelector('form');
+
 form.addEventListener('submit', () => {
     loading.style.display = 'block';
+    let progress = 0;
+
+    const increaseProgress = () => {
+        if (progress < 90) {
+            progress += 0.3;
+        } else if (progress < 99) {
+            progress += 0.1;
+        }
+        progressBar.style.width = progress + '%';
+        progressBar.setAttribute('aria-valuenow', progress);
+    };
+
+    let progressInterval = setInterval(increaseProgress, 100);
 });
 
 function copyToClipboard() {
