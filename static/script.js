@@ -15,7 +15,6 @@ form.addEventListener('submit', () => {
         progressBar.style.width = progress + '%';
         progressBar.setAttribute('aria-valuenow', progress);
     };
-
     let progressInterval = setInterval(increaseProgress, 100);
 });
 
