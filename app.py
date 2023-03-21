@@ -18,7 +18,7 @@ def send_gpt(prompt, tem):
         messages= messages,
         temperature=tem,
 #        max_tokens=4096,   # prompt and answer together have 4096 tokens
-        top_p=1.0,
+        # top_p=1.0,
         frequency_penalty=0,
         presence_penalty=0
         )
