@@ -1,7 +1,7 @@
 文章
 I want you to act as a very proficient SEO and high end copy writer, I give you the Title "{keyword}" of an article, write a fully markdown formatted article in Chinese that could rank on Google on the same keywords as that website. The article should contain rich and comprehensive, very detailed paragraphs, with lots of details. Do not echo my prompt. Let the article be a long article of at least {words} words. Do use useful subheadings with keyword-rich titles, make headings bold and appropriate for h tags.
 自由提问
-{keyword}, please output at least {words} words in Chinese.
+{keyword}, please output in Chinese.
 内容总结
 总结以下内容：{keyword}
 英译中
