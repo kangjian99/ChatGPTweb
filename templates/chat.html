@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 
 <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -14,37 +14,40 @@
 <body>
 
 <div class="info">
+    <br>
     <h1 align="center">Model: {{ model }}</h1>
     <div align="right"  style="margin-right: 25px;">
-            <h2>Temperature Guide</h2>
+<!--            <h2>Temperature Guide</h2>
             Code Refactoring --- 0.2<br>
             Email Parser --- 0.3<br>
             Chat Bot --- 0.5<br>
             Summarise Text --- 0.5<br>
             Code Generation --- 0.8<br>
             Story Writing ---0.8<br>
+-->
+User: {{ user_id}}<br>
     </div>
     </div>
-        <hr />
+        <hr /><br>
         
         <div class="container">
-    <div class="row justify-content-center align-items-center vh-100">
+    <div class="row justify-content-center align-items-center">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header text-center">文本生成器  模型-{{ model }}</div>
                 <div class="card-body">
                     {% if message %} {{ message }} {% endif %}
-                    <form method="post" onsubmit="submit.disabled=true" enctype="multipart/form-data">
+                    <form method="post" id="question-form" onsubmit="submit.disabled=true" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="question">提示语句或关键词（多个关键词以空格分开）：</label>
-                            <textarea id="question" name="question" placeholder="Type your keywords here." rows="4" class="form-control"></textarea>
+                            <textarea id="question" name="question" placeholder="Type your keywords here." rows="3" class="form-control"></textarea>
                         </div>
                         <div class="form-group">
                             <label for="words">字数 (input only once):</label>
-                            <textarea id="words" name="words" placeholder="How many words you want to generate" rows="1" class="form-control"></textarea>
+                            <textarea id="words" name="words" placeholder="How many words do you want to generate" rows="1" class="form-control"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="template_file">Upload Prompt Template(.txt, upload only once):</label>
+                            <label for="template_file">Upload Prompt Template (.txt, upload only once):</label>
                             <div class="input-group mb-3">
                                 <div class="custom-file">
                                     <input type="file" class="custom-file-input" id="template_file" name="template_file" accept=".txt">
@@ -69,24 +72,24 @@
                         <input type="hidden" name="logged_in" value="{{ session.get('logged_in') }}">
                     </form>
                     
-<div id="loading" style="display:none; width: 90%; margin: 0 auto; padding-bottom: 10px">
-    <div class="progress">
-        <div id="progress-bar" class="progress-bar progress-bar-striped bg-secondary" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
-        </div>
-    </div>
-</div>
+                    <div id="loading" style="display:none; color:gray;"><b>Waiting for the response...</b></div>
                     
-                    {% if question %}
+                     <div id="empty" style="display:none; color:black;">Question can't be empty!</div>
+                    
+<div id="response-card" style="display: none;">                    
 <div class="card">
     <div class="card-body align-items-center">
         <div style="text-align: left"><b>用户文本：</b>
-            <pre id="question" style="white-space: pre-wrap;">{{ question }}</pre>
+            <pre id="legend" style="white-space: pre-wrap;">{{ question }}</pre>
         </div>
         <hr />
-        <div style="text-align: left"><b>回复 - Tem={{ temperature }} :</b>
+        <div style="text-align: left"><b>{{ model }}</b>
+        <div id="user_tem"><b>回复 - Tem={{ temperature }} :</b>
+</div>
             <div class="card" style="height: 400px; overflow-y: scroll;">
                 <div class="card-body" style="text-align:left; margin-top: 0px; white-space: pre-wrap;" id="res">{{ res|safe }}</div>
             </div>
+                 
             <div id="copy-animation" class="hide">
                 <div class="message">已复制到剪贴板！</div>
             </div>
@@ -100,22 +103,115 @@
             </form>
 
         </div>
-                {% endif %}
+</div>
                 <form action="{{ url_for('logout') }}" method="get" style="float: right; transform: scale(0.8);">
   <button class="btn btn-secondary">Logout</button>
 </form>
     </div>
 </div>
+   
     <script>
+function resetPage() {
+    // 清空 question 文本区域
+    document.getElementById("question").value = "";
+    // 清空 words 文本区域
+    document.getElementById("words").value = "";
+}
+
+function empty_process() {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("empty").style.display = "block";
+    setTimeout(function() {
+          document.getElementById("empty").style.display = "none";
+    }, 3000);
+}
+
+function enable_submit() {
+    // 启用提交按钮
+    document.getElementById("submit").disabled = false;
+}
+
+function onSuccess() {
+    document.getElementById("loading").style.display = "none";
     // 所有元素显示完成，滚动到底部
     let scrollPosition = document.body.scrollHeight - 200;
     window.scroll({
-    top: scrollPosition,
-    behavior: 'smooth'
-});
-   </script>
-   
+        top: scrollPosition,
+        behavior: 'smooth'  // or auto
+    });
+    resetPage();
+}
 
+document.getElementById("question-form").addEventListener("submit", function(event) {
+    event.preventDefault();
+    var question = document.getElementById("question").value;
+    var temperature = document.getElementById("tem").value;
+    var words = document.getElementById("words").value;
+    var dropdown = document.getElementById("dropdown").value;
+    var template_file = document.getElementById("template_file").files[0];
+
+    var formData = new FormData();
+    formData.append("question", question);
+    formData.append("temperature", temperature);
+    formData.append("words", words);
+    formData.append("dropdown", dropdown);
+    formData.append("template_file", template_file);
+    
+function checkHeightAndScroll(element, maxHeight) {
+    const parentElement = element.parentNode;
+    if (element.scrollHeight > maxHeight) {
+        parentElement.scrollTop = element.scrollHeight - parentElement.clientHeight;
+    }
+}
+    function createEventSource(responseUrl, question, temperature) {
+        var source = new EventSource(responseUrl);
+        var onSuccessCalled = false; // 添加这个布尔变量
+        source.onmessage = function(event) {
+            document.getElementById("legend").innerHTML = question;
+            document.getElementById("user_tem").innerHTML = "Tem= " + temperature;
+            // console.log("Received data:", event.data);
+            const data = JSON.parse(event.data);  //先对event.data解析JSON
+            const html = data.data;
+            const resElement = document.getElementById("res");
+            resElement.innerHTML = ""; // 首先清空容器
+            resElement.insertAdjacentHTML("beforeend", html);
+            document.getElementById("response-card").style.display = "block";
+            // 在处理完消息后调用 onSuccess一次
+            if (!onSuccessCalled) {
+                onSuccess();
+                onSuccessCalled = true;
+            }
+           // 检查 "res" 元素的高度并滚动
+           checkHeightAndScroll(resElement, 400);
+        };
+        source.onerror = function(error) {
+            if (error.target.readyState === EventSource.CLOSED) {
+                console.log("EventSource closed");
+            } else if (error.target.readyState === EventSource.CONNECTING) {
+                console.log("EventSource reconnecting");
+                enable_submit();
+            }
+        };
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/stream", true); 
+    xhr.onreadystatechange = function() {
+        if (question == "") {
+            enable_submit();
+            empty_process();
+            } else {
+                document.getElementById("loading").style.display = "block";
+              }
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var responseUrl = xhr.responseText;
+            createEventSource(responseUrl, question, temperature);
+        }
+    };
+    xhr.send(formData);
+});
+    </script>
+   
 <script>
 function updateSession() {
   $.ajax({
