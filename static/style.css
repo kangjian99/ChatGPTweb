@@ -30,7 +30,7 @@ p {
 }
 
 h1 {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: bold;
 }
 
@@ -120,7 +120,6 @@ textarea {
 .card-body tbody + tbody {
   border-top: 2px solid #c8ced3;
 }
-
 
 input[type='range'] {
   width: 60%;
