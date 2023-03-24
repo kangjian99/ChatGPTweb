@@ -16,7 +16,7 @@ def authenticate_user(username, password):
     # 如果找到匹配的用户名和密码，则返回 True，否则返回 False
     return count == 1
 
-def insert_db(result, session=None):
+def insert_db(result, user_id=None, messages=[]):
     # 连接到数据库
     cnxn = pyodbc.connect(f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={db_username};PWD={db_password}')
     
@@ -33,9 +33,7 @@ def insert_db(result, session=None):
     cursor = cnxn.cursor()
     cursor.execute(query, params)
     
-    if session:
-        user_id = session.get('user_id')
-        messages = session.get('messages')
+    if user_id:
         messages_str = json.dumps(messages, ensure_ascii=False)
         # 构建插入语句并执行
         query = "INSERT INTO session (user_id, messages) VALUES (?, ?);"
