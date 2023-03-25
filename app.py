@@ -125,6 +125,7 @@ def count_chars(text, user_id, tokens):
 
 @app.route('/', methods=['GET', 'POST'])
 def get_request_json():
+    global global_messages
     prompts = get_prompt_templates()
     if request.method == 'POST':
         if 'clear' in request.form:
