@@ -28,12 +28,12 @@
 User: {{ user_id}}<br>
     </div>
     </div>
-        <hr /><br>
+        <hr />
         
         <div class="container">
     <div class="row justify-content-center align-items-center">
         <div class="col-md-8">
-            <div class="card">
+            <div class="card" style="margin-top: 10px;">
                 <div class="card-header text-center">文本生成器  模型-{{ model }}</div>
                 <div class="card-body">
                     {% if message %} {{ message }} {% endif %}
