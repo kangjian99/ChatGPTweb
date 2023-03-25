@@ -1,5 +1,7 @@
 import pyodbc
 import json
+import datetime
+import pytz
 from settings import *
     
 def authenticate_user(username, password):
@@ -27,6 +29,11 @@ def insert_db(result, user_id=None, messages=[]):
     en_char_count = result.get('en_char_count')
     tokens = result.get('tokens')
 
+    now = result.get('datetime')
+    utc_now = datetime.datetime.strptime(now, '%Y-%m-%dT%H:%M:%S.%f%z')
+    beijing_tz = pytz.timezone('Asia/Shanghai')
+    now = utc_now.astimezone(beijing_tz)
+    
     # 构建插入语句并执行
     query = "INSERT INTO stats (user_id, datetime, cn_char_count, en_char_count, tokens) VALUES (?, ?, ?, ?, ?);"
     params = (user_id, now, cn_char_count, en_char_count, tokens)
