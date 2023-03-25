@@ -134,7 +134,9 @@ function enable_submit() {
 function onSuccess() {
     document.getElementById("loading").style.display = "none";
     // 所有元素显示完成，滚动到底部
-    let scrollPosition = document.body.scrollHeight - 200;
+    let element = document.getElementById('submit');
+    // let scrollPosition = document.body.scrollHeight - 200;
+    let scrollPosition = element.offsetTop + 120;
     window.scroll({
         top: scrollPosition,
         behavior: 'smooth'  // or auto
