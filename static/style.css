@@ -15,6 +15,7 @@ body {
   color: #333;
   background-color: #eee;
   display: block;
+  padding-bottom: 50px;
 }
 
 header {
