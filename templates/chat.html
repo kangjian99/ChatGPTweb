@@ -252,30 +252,6 @@ document.getElementById("clear-form").addEventListener("submit", function(event)
 
     </script>
    
-<script>
-function updateSession() {
-  $.ajax({
-    type: 'POST',
-    url: '/update-session',
-    success: function(response) {
-      if (response.success) {
-        setTimeout(updateSession, 5000);  // 5 秒钟后再次发送请求
-      } else {
-        alert('Failed to update session.');
-      }
-    },
-    error: function() {
-      alert('Failed to update session.');
-    }
-  });
-}
-
-$(function() {
-  // 开始更新会话状态
-  updateSession();
-});
-</script>
-
 <script src="/static/script.js"></script>
 </body>
 </html>
