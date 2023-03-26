@@ -95,7 +95,7 @@ User: {{ user_id}}<br>
             </div>
             <button onclick="copyToClipboard()" class="btn btn-success" style="float:right; margin-top: 1px; transform: scale(0.8);">复制结果</button>
             <br><br>
-            <form method="post">
+            <form id="clear-form" method="post">
                 <div class="form-group" style="text-align: center;">
                     <button name="clear" value="1" class="btn btn-primary" style="transform: scale(0.8);">Clear</button>
                 </div>
@@ -126,6 +126,18 @@ function empty_process() {
     }, 3000);
 }
 
+function clear_process() {
+    let scrollPosition = 0;
+    window.scroll({
+        top: scrollPosition,
+        behavior: 'smooth'
+    });
+    document.getElementById("legend").innerHTML = "";
+    document.getElementById("user_tem").innerHTML = "";
+    document.getElementById("res").innerHTML = "";
+    enable_submit();
+}
+
 function enable_submit() {
     // 启用提交按钮
     document.getElementById("submit").disabled = false;
@@ -144,6 +156,9 @@ function onSuccess() {
     resetPage();
 }
 
+// 在全局范围内定义 source 变量
+let source;
+
 document.getElementById("question-form").addEventListener("submit", function(event) {
     event.preventDefault();
     var question = document.getElementById("question").value;
@@ -159,14 +174,14 @@ document.getElementById("question-form").addEventListener("submit", function(eve
     formData.append("dropdown", dropdown);
     formData.append("template_file", template_file);
     
-function checkHeightAndScroll(element, maxHeight) {
-    const parentElement = element.parentNode;
-    if (element.scrollHeight > maxHeight) {
-        parentElement.scrollTop = element.scrollHeight - parentElement.clientHeight;
+    function checkHeightAndScroll(element, maxHeight) {
+        const parentElement = element.parentNode;
+        if (element.scrollHeight > maxHeight) {
+            parentElement.scrollTop = element.scrollHeight - parentElement.clientHeight;
+        }
     }
-}
     function createEventSource(responseUrl, question, temperature) {
-        var source = new EventSource(responseUrl);
+        source = new EventSource(responseUrl);
         var onSuccessCalled = false; // 添加这个布尔变量
         source.onmessage = function(event) {
             document.getElementById("legend").innerHTML = question;
@@ -212,6 +227,29 @@ function checkHeightAndScroll(element, maxHeight) {
     };
     xhr.send(formData);
 });
+
+// Clear操作
+document.getElementById("clear-form").addEventListener("submit", function(event) {
+  event.preventDefault();
+  // 终止 EventSource 连接
+  if (source) {
+    source.close();
+  }
+  
+  // 使用 FormData 发送表单数据
+  var formData = new FormData();
+  formData.append("clear", "true");
+  formData.append("logged_in", "{{ session.get('logged_in') }}");
+
+  // 向服务器发送异步请求，以清除服务器上的数据
+  fetch("/", {
+    method: "POST",
+    body: formData
+  });
+  //重置页面
+  clear_process()
+});
+
     </script>
    
 <script>
