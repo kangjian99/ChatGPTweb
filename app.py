@@ -53,9 +53,7 @@ def generate_text(prompt, tem, messages):
         print(e)
         return "Connection Error! Please try again."
 
-def send_gpt(prompt, tem, messages, user_id, tokens):
-    global global_messages
-    token_counter = 0
+def send_gpt(prompt, tem, messages, user_id):
     partial_words = ""
     response = generate_text(prompt, tem, messages)
     
@@ -79,7 +77,6 @@ def send_gpt(prompt, tem, messages, user_id, tokens):
                     if "content" in data['choices'][0]["delta"]:
                         partial_words += data['choices'][0]["delta"]["content"]
                         # print("Content found:", partial_words)  # 添加这一行以打印找到的内容
-                        token_counter += 1
                         yield {'content': partial_words}
                     else:
                         print("No content found in delta:", data['choices'][0]["delta"])  # 添加这一行以打印没有内容的 delta
@@ -90,15 +87,6 @@ def send_gpt(prompt, tem, messages, user_id, tokens):
 
 #        print(f"{response['usage']}\n")
 #        session['tokens'] = response['usage']['total_tokens']
-    # messages = messages
-    messages.append({"role": "assistant", "content": partial_words})
-    print("精简前messages:", messages)
-    messages = messages[-2:] #仅保留最新两条
-    global_messages = messages
-
-    tokens = token_counter
-    count_chars(partial_words, user_id, tokens)
-    return {'messages': messages}
         
 def count_chars(text, user_id, tokens):
     cn_pattern = re.compile(r'[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]') #匹配中文字符及标点符号
@@ -160,11 +148,6 @@ def logout():
     session.clear()
     return redirect(url_for('get_request_json'))
 
-@app.route('/update-session', methods=['POST'])
-def update_session():
-    session['logged_in'] = True  # 根据您的实际需求更新会话状态
-    return jsonify({'success': True})
-
 @app.route('/stream_get/<unique_url>', methods=['GET'])
 def stream_get(unique_url):
     if unique_url in stream_data:
@@ -195,15 +178,28 @@ def stream():
         question = keyword
 
     temperature = float(request.form['temperature'])
-    messages = global_messages
     user_id = session.get('user_id')
-    tokens = session.get('tokens')
+    # tokens = session.get('tokens')
     def process_data():
-        for res in send_gpt(question, temperature, messages, user_id, tokens):
-            if 'content' in res:
-                markdown_message = generate_markdown_message(res['content'])
-                # print(f"Yielding: {markdown_message}")  # 添加这一行
-                yield f"data: {json.dumps({'data': markdown_message})}\n\n" # 将数据序列化为JSON字符串
+        token_counter = 0
+        res = None
+        global global_messages
+        messages = global_messages
+        try:
+            for res in send_gpt(question, temperature, messages, user_id):
+                if 'content' in res:
+                    markdown_message = generate_markdown_message(res['content'])
+                    # print(f"Yielding: {markdown_message}")  # 添加这一行
+                    token_counter += 1
+                    yield f"data: {json.dumps({'data': markdown_message})}\n\n" # 将数据序列化为JSON字符串
+        finally:
+            # 如果生成器停止，仍然会执行
+            text = res['content']
+            messages.append({"role": "assistant", "content": text})
+            print("精简前messages:", messages)
+            messages = messages[-2:] #仅保留最新两条
+            global_messages = messages
+            count_chars(text, user_id, token_counter)
                 
     if stream_data:
         stream_data.pop(list(stream_data.keys())[0])  # 删除已使用的URL及相关信息              
