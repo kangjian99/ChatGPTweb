@@ -27,7 +27,7 @@ def generate_markdown_message(text):
             num_ticks = text.count('```')
             # 如果出现次数是奇数，则在text的末尾添加```
             if num_ticks % 2 == 1:
-                text += '```'
+                text += '```' if text[-1] != '`' else '`'
         markdown_message = markdown.markdown(text, extensions=["tables", "nl2br"]) # 将返回的字符串转换为Markdown格式的HTML标记
         if is_codeblock:
             markdown_message = markdown_message.replace("%35%", "#")
