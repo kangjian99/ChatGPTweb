@@ -184,7 +184,7 @@ document.getElementById("question-form").addEventListener("submit", function(eve
         source = new EventSource(responseUrl);
         var onSuccessCalled = false; // 添加这个布尔变量
         source.onmessage = function(event) {
-            document.getElementById("legend").innerHTML = question;
+            document.getElementById("legend").innerText = question;
             document.getElementById("user_tem").innerHTML = "Tem= " + temperature;
             // console.log("Received data:", event.data);
             const data = JSON.parse(event.data);  //先对event.data解析JSON
