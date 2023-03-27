@@ -50,6 +50,11 @@ li:not(:last-child) {
   margin-bottom: 0.5rem;
 }
 
+code {
+  background-color: #ffffff;
+  color: #007abb;
+}
+
 main {
   max-width: 800px;
   margin: 0 auto;
