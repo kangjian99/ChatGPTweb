@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = SESSION_SECRET_KEY # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
 
 timeout_streaming = 5
-global_messages = []
+directory = 'session_messages'
 stream_data = {}
 
 def get_prompt_templates():
@@ -88,7 +88,7 @@ def send_gpt(prompt, tem, messages, user_id):
 #        print(f"{response['usage']}\n")
 #        session['tokens'] = response['usage']['total_tokens']
         
-def count_chars(text, user_id, tokens):
+def count_chars(text, user_id, tokens, messages):
     cn_pattern = re.compile(r'[\u4e00-\u9fa5\u3000-\u303f\uff00-\uffef]') #匹配中文字符及标点符号
     cn_chars = cn_pattern.findall(text)
 
@@ -100,30 +100,53 @@ def count_chars(text, user_id, tokens):
 
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    # 获取 session 中的统计结果列表，如果不存在则初始化为空列表
-    # results = session.get('results', [])
     # 将当前统计结果添加为字典
     stats = {'user_id': user_id, 'datetime': now, 'cn_char_count': cn_char_count, 'en_char_count': en_char_count, 'tokens': tokens}
     print(stats)
     
     if stats:
-        insert_db(stats, user_id, global_messages)
+        insert_db(stats, user_id, messages)
 
     return 'success'
 
+def clear_messages(user_id):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    with open(f'{directory}/messages_{user_id}.txt', 'w') as file:
+        file.truncate(0)
+        
+def save_user_messages(user_id, messages):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    with open(f'{directory}/messages_{user_id}.txt', 'w') as f:
+        for message in messages:
+            f.write(json.dumps(message) + '\n')
+            
+def get_user_messages(user_id):
+    messages = []
+    try:
+        with open(f'{directory}/messages_{user_id}.txt', 'r') as f:
+            for line in f.readlines():
+                messages.append(json.loads(line.strip()))
+    except FileNotFoundError:
+        pass
+    return messages
+    
 @app.route('/', methods=['GET', 'POST'])
 def get_request_json():
-    global global_messages
+    # global session['messages']
     prompts = get_prompt_templates()
     if request.method == 'POST':
         if 'clear' in request.form:
-            global_messages = [] #不改变session['logged_in']
+            session['messages'] = [] #不改变session['logged_in']
+            clear_messages(session['user_id'])
             return redirect(url_for('get_request_json'))
         else:
             return render_template('chat.html', model=model, user_id=session.get('user_id'), pid=",".join(prompts.keys()))
     else:
-        global_messages = []
+        session['messages'] = []
         if 'user_id' in session and 'password' in session and authenticate_user(session['user_id'], session['password']) == True:
+            clear_messages(session['user_id'])
             return render_template('chat.html', model=model, user_id=session.get('user_id'), question=0, pid = ",".join(prompts.keys()))
         else:
             return redirect(url_for('login'))
@@ -159,13 +182,17 @@ def stream_get(unique_url):
 
 @app.route('/stream', methods=['POST'])
 def stream():
+    if 'messages' not in session:
+        session['messages'] = []
     prompts = get_prompt_templates()
 
     if len(request.form['question']) < 1:
         return redirect(url_for('get_request_json'))
 
+    user_id = session.get('user_id')
     keyword = request.form['question']
-    if global_messages == []:
+    session['messages']  = get_user_messages(user_id)
+    if session['messages'] == []:
         words = int(request.form['words']) if request.form['words'] != '' else 500
         template_file = request.files.get('template_file')
         if not template_file:
@@ -178,18 +205,17 @@ def stream():
         question = keyword
 
     temperature = float(request.form['temperature'])
-    user_id = session.get('user_id')
+    messages = session['messages']
     # tokens = session.get('tokens')
     def process_data():
         token_counter = 0
         res = None
-        global global_messages
-        messages = global_messages
+        nonlocal messages
         try:
             for res in send_gpt(question, temperature, messages, user_id):
                 if 'content' in res:
                     markdown_message = generate_markdown_message(res['content'])
-                    # print(f"Yielding: {markdown_message}")  # 添加这一行
+                    # print(f"Yielding markdown_message: {markdown_message}")  # 添加这一行
                     token_counter += 1
                     yield f"data: {json.dumps({'data': markdown_message})}\n\n" # 将数据序列化为JSON字符串
         finally:
@@ -198,16 +224,18 @@ def stream():
             messages.append({"role": "assistant", "content": text})
             print("精简前messages:", messages)
             messages = messages[-2:] #仅保留最新两条
-            global_messages = messages
-            count_chars(text, user_id, token_counter)
-                
+            save_user_messages(user_id, messages)
+            # session['messages'] = messages
+            count_chars(text, user_id, token_counter, messages)
+            
     if stream_data:
         stream_data.pop(list(stream_data.keys())[0])  # 删除已使用的URL及相关信息              
     unique_url = uuid.uuid4().hex
     stream_data[unique_url] = {
         'response': process_data(),
-        'messages': global_messages,
+        'messages': session['messages'],
     }
+    
     print(session)
     session['tokens'] = 0
     return 'stream_get/' + unique_url                
