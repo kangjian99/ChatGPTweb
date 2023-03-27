@@ -12,7 +12,7 @@ def generate_markdown_message(text):
         
     if is_html(text):
         escaped_text = html.escape(text) # 将HTML标签转换为实体
-        text = f"<pre>{escaped_text}</pre>"
+        text = f"<pre style='white-space: pre-wrap;'>{escaped_text}</pre>"
         return text
 
     pattern = r'#{2,6}(?!\w)|\*\*[\s\S]*?\*\*|\*[\s\S]*?\*|\||^-{1,}\s|```'
