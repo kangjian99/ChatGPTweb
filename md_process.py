@@ -22,6 +22,7 @@ def generate_markdown_message(text):
         text = text.replace("\n\n\n", "\n\n")
         if is_codeblock:
             text = text.replace("#", "%35%")
+            text = text.replace("\n\n", "\n")
         markdown_message = markdown.markdown(text, extensions=["tables", "nl2br"]) # 将返回的字符串转换为Markdown格式的HTML标记
         if is_codeblock:
             markdown_message = markdown_message.replace("%35%", "#")
