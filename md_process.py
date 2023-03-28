@@ -4,7 +4,7 @@ import html
 
 def is_html(text):
     html_pattern = re.compile(r'<[^>]+>')
-    return bool(html_pattern.search(text))
+    return bool(html_pattern.search(text) and (text.count('include <') == 0))
 
 def generate_markdown_message(text):
     if text.startswith("\n\n"):
