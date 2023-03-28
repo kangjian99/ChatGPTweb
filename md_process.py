@@ -3,7 +3,7 @@ import markdown
 import html
 
 def is_html(text):
-    html_pattern = re.compile(r'<[^>]+>')
+    html_pattern = re.compile(r'.*<\S+>.*')
     return bool(html_pattern.search(text) and not ("include <" in text and "```" in text)) # c++代码单独判断
 
 def generate_markdown_message(text):
@@ -31,7 +31,7 @@ def generate_markdown_message(text):
         markdown_message = markdown.markdown(text, extensions=["tables", "nl2br"]) # 将返回的字符串转换为Markdown格式的HTML标记
         if is_codeblock:
             markdown_message = markdown_message.replace("%35%", "#")
-            markdown_message = re.sub(r'^#', '\n#', markdown_message, flags=re.MULTILINE)
+            markdown_message = re.sub(r'^(#|\/\/)', '\n\\1', markdown_message, flags=re.MULTILINE)
         return markdown_message
     else:
         text = text.replace("\n", "<br>")
