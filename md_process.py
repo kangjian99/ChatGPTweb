@@ -4,7 +4,7 @@ import html
 
 def is_html(text):
     html_pattern = re.compile(r'<[^>]+>')
-    return bool(html_pattern.search(text) and (text.count('include <') == 0))
+    return bool(html_pattern.search(text) and not ("include <" in text and "```" in text)) # c++代码单独判断
 
 def generate_markdown_message(text):
     if text.startswith("\n\n"):
