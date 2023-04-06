@@ -13,3 +13,5 @@ driver = '{ODBC Driver 18 for SQL Server}'
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
 API_URL = "https://api.openai.com/v1/chat/completions"
+
+directory = 'session_messages'
