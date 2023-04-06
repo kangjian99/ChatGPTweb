@@ -1,5 +1,6 @@
 import pyodbc
 import json
+import tiktoken
 from settings import *
     
 def authenticate_user(username, password):
@@ -43,3 +44,37 @@ def insert_db(result, user_id=None, messages=[]):
         
     cnxn.commit()
     cnxn.close()
+    
+def clear_messages(user_id):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    with open(f'{directory}/messages_{user_id}.txt', 'w') as file:
+        file.truncate(0)
+        
+def save_user_messages(user_id, messages):
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+    with open(f'{directory}/messages_{user_id}.txt', 'w') as f:
+        for message in messages:
+            f.write(json.dumps(message) + '\n')
+            
+def get_user_messages(user_id):
+    messages = []
+    try:
+        with open(f'{directory}/messages_{user_id}.txt', 'r') as f:
+            for line in f.readlines():
+                messages.append(json.loads(line.strip()))
+    except FileNotFoundError:
+        pass
+    return messages
+
+def history_messages(user_id):
+    rows = 2
+    if user_id == 'sonic':
+        rows = 4
+    return rows
+    
+def num_tokens(string: str) -> int:
+    encoding = tiktoken.encoding_for_model(model)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
