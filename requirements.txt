@@ -4,3 +4,4 @@ Markdown
 datetime
 Pyodbc
 tiktoken
+bs4
