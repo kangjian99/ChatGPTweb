@@ -6,7 +6,7 @@ I want you to act as a very proficient SEO and high end copy writer, I give you 
 你的任务是充分理解以下内容：“{url}”，并形成一篇新的文章。文章保留主要的事实与观点，分为2～3个paragraphs，不要过于简略，不低于1000字。
 内容提炼总结
 总结以下内容：{keyword}
-英译中
+英译中_
 把以下内容翻译为中文：{keyword}
 中译英
 Translate following words into English: {keyword}
