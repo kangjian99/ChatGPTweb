@@ -3,5 +3,5 @@ Openai
 Markdown
 datetime
 Pyodbc
-tiktoken
 bs4
+tiktoken
