@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'GPT3web'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_67284B890BFB4F0DB3ED6E6CC4C40997 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_29483BBAA920450C99BC11B52BE8E5B9 }}
