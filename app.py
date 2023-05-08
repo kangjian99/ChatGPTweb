@@ -1,8 +1,8 @@
-from flask import Flask, request, render_template, session, redirect, url_for, flash, jsonify, Response, stream_with_context
+from flask import Flask, request, render_template, session, redirect, url_for, flash, Response
 import re
 import json
-import requests
 import uuid
+import time
 from datetime import datetime
 from settings import *
 from db_process import *
@@ -12,74 +12,55 @@ from wx_process import *
 app = Flask(__name__)
 app.config['SECRET_KEY'] = SESSION_SECRET_KEY # SECRET_KEY是Flask用于对session数据进行加密和签名的一个关键值。如果没有设置将无法使用session
 
-timeout_streaming = 5
 stream_data = {}
+table_name = 'prompts1'
 
-def get_prompt_templates():
-    filename = 'prompts.txt'
-    with open(filename, 'r') as f:
-        lines = f.readlines()
-    prompts = {}
-    for i in range(0, len(lines)-1, 2):
-        prompts[lines[i].strip()] = lines[i+1].strip()
-    return prompts
-
-def generate_text(prompt, tem, messages):
+def Chat_Completion(question, tem, messages, stream):
     try:
-        messages.append({"role": "user", "content": prompt})
+        messages.append({"role": "user", "content": question})
         print("generate_text:", messages)
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {openai_api_key}"
-        }
-
-        # history = [construct_system(system_prompt), *history]
-
-        payload = {
-            "model": model,
-            "messages": messages,  # [{"role": "user", "content": f"{inputs}"}],
-            "temperature": tem,  # 1.0,
-            "n": 1,
-            "stream": True,
-            "presence_penalty": 0,
-            "frequency_penalty": 0,
-        }
-        timeout = timeout_streaming
-
-        response = requests.post(API_URL, headers=headers, json=payload, stream=True, timeout=timeout)
+        response = openai.ChatCompletion.create(
+        model= model,
+        messages= messages,
+        temperature=tem,
+        stream=stream,
+        top_p=1.0,
+        frequency_penalty=0,
+        presence_penalty=0
+        )
+        if not stream:
+            print(f"{response['usage']}\n")
+            session['tokens'] = response['usage']['total_tokens']
+            return response["choices"][0]['message']['content']
         return response
-
+        
     except Exception as e:
         print(e)
         return "Connection Error! Please try again."
 
 def send_gpt(prompt, tem, messages, user_id):
     partial_words = ""
-    response = generate_text(prompt, tem, messages)
+    response = Chat_Completion(prompt, tem, messages, True)
     
     # 添加如下调试信息
     # print("Response:", response)
     # print("Response status code:", response.status_code)
     # print("Response headers:", response.headers)
 
-    for chunk in response.iter_lines():
+    for chunk in response:
         if chunk:
-            chunk = chunk.decode()
             # print("Decoded chunk:", chunk)  # 添加这一行以打印解码的块
-            chunklength = len(chunk)
-            data = json.loads(chunk[6:])
-            # print(data['choices'][0]["delta"])
             try:
-                if chunklength > 6 and "delta" in data['choices'][0]:
-                    finish_reason = data['choices'][0]['finish_reason']
+                if "delta" in chunk['choices'][0]:
+                    finish_reason = chunk['choices'][0]['finish_reason']
                     if finish_reason == "stop":
                         break
-                    if "content" in data['choices'][0]["delta"]:
-                        partial_words += data['choices'][0]["delta"]["content"]
+                    if "content" in chunk['choices'][0]["delta"]:
+                        partial_words += chunk['choices'][0]["delta"]["content"]
                         # print("Content found:", partial_words)  # 添加这一行以打印找到的内容
                         yield {'content': partial_words}
                     else:
-                        print("No content found in delta:", data['choices'][0]["delta"])  # 添加这一行以打印没有内容的 delta
+                        print("No content found in delta:", chunk['choices'][0]["delta"])  # 添加这一行以打印没有内容的 delta
                 else:
                     pass
             except json.JSONDecodeError:
@@ -113,7 +94,7 @@ def count_chars(text, user_id, messages):
 @app.route('/', methods=['GET', 'POST'])
 def get_request_json():
     # global session['messages']
-    prompts = get_prompt_templates()
+    prompts = read_table_data(table_name)
     if request.method == 'POST':
         if 'clear' in request.form:
             session['messages'] = [] #不改变session['logged_in']
@@ -162,55 +143,104 @@ def stream_get(unique_url):
 def stream():
     if 'messages' not in session:
         session['messages'] = []
-    prompts = get_prompt_templates()
+    prompts = read_table_data(table_name)
 
     if len(request.form['question']) < 1:
         return redirect(url_for('get_request_json'))
 
     user_id = session.get('user_id')
     keyword = request.form['question']
+    context = request.form['context']
+    temperature = float(request.form['temperature'])
+    template_file = request.files.get('template_file')
+    if not template_file:
+        dropdown = request.form.get('dropdown')
+        prompt_template = list(prompts.items())[int(dropdown) - 1] #元组
+    else:
+        prompt_template = template_file.read().decode('utf-8')
+    question = ['']
+    
     session['messages']  = get_user_messages(user_id)
     if session['messages'] == []:
-        words = int(request.form['words']) if request.form['words'] != '' else 500
-        template_file = request.files.get('template_file')
-        if not template_file:
-            dropdown = request.form.get('dropdown')
-            prompt_template = list(prompts.values())[int(dropdown) - 1]
+        words = int(request.form['words']) if request.form['words'] != '' else 800
+        if '{url}' in prompt_template[1]:
+            url_list = extract_links(keyword)
+            text = get_content(url_list[0].strip())
+            if len(url_list) == 1 or text == 'Error': # 单链接或非链接
+                if text == 'Error':
+                    text = keyword +'\n' + context
+                    question[0] = prompt_template[1].format(url=text, context=context.strip(), words=words)
+                else:
+                    question[0] = prompt_template[1].format(url=text[0], context=context.strip(), words=words)
+                    question[1:] = [list(prompts.values())[-2].format(content=t, count=i+2) for i, t in enumerate(text[1:])] #超长用特定模版处理
+            else:
+                extract_text = ''
+                count = 1
+                for line in url_list:
+                    messages = []
+                    text = get_content(line)
+                    print(text)
+                    if text != 'Error':
+                        question[0] = f"{prompt_template[1].format(url=text[0], context=context.strip(), words=words)!s}"
+                        print(question[0])
+                        content = Chat_Completion(question[0], temperature, messages, False)
+                        messages.append({"role": "assistant", "content": content})
+                        join_message = "".join([msg["content"] for msg in messages])
+                        print("精简前messages:", messages)
+                        count_chars(join_message, user_id, messages)
+                        title_keyword = "标题"
+                        if title_keyword in content:
+                            title_index = content.index(title_keyword)
+                            content = content[title_index:] # 去除开头干扰性语句
+                        extract_text += f'【文章{count}：】\n' + content + '\n'
+                        count += 1
+                prompt_template = (prompt_template[0], list(prompts.values())[-1])
+ #多链接提炼整合后用特定模版处理
+                question[0] = f"{prompt_template[1].format(words=words, context=extract_text)!s}"
+        elif '{lang}' in prompt_template[1]:
+            text = split_text(keyword, 50000, 6000)
+            question = [prompt_template[1].format(lang=t) for t in text]            
         else:
-            prompt_template = template_file.read().decode('utf-8')
-        if 'url' in prompt_template:
-            text = get_wx_content(keyword)
-            question = f"{prompt_template.format(url=text)!s}"
-        else:
-            question = f"{prompt_template.format(keyword=keyword, words=words)!s}"
+            question[0] = f"{prompt_template[1].format(keyword=keyword, words=words, context=context)!s}"
     else:
-        question = keyword
-
-    temperature = float(request.form['temperature'])
+        if 'act' in prompt_template[0]:
+            question[0] = keyword + '\n' + prompt_template[1].split('\n')[0]
+        else:
+            question[0] = keyword
+        
     messages = session['messages']
     # tokens = session.get('tokens')
     def process_data():
         # token_counter = 0
-        res = None
         nonlocal messages
-        try:
-            for res in send_gpt(question, temperature, messages, user_id):
-                if 'content' in res:
-                    markdown_message = generate_markdown_message(res['content'])
-                    # print(f"Yielding markdown_message: {markdown_message}")  # 添加这一行
-                    # token_counter += 1
-                    yield f"data: {json.dumps({'data': markdown_message})}\n\n" # 将数据序列化为JSON字符串
-        finally:
-            # 如果生成器停止，仍然会执行
-            messages.append({"role": "assistant", "content": res['content']})
-            join_message = "".join([msg["content"] for msg in messages])
-            print("精简前messages:", messages)
-            rows = history_messages(user_id) # 历史记录条数
-            if len(messages) > rows:
-                messages = messages[-rows:] #仅保留最新两条
-            save_user_messages(user_id, messages)
-            # session['messages'] = messages
-            count_chars(join_message, user_id, messages)
+        counter = 0
+        for prompt in question:
+            res = None
+            if counter > 0:
+                messages = []
+                # time.sleep(5)
+            counter += 1
+            try:
+                for res in send_gpt(prompt, temperature, messages, user_id):
+                    if 'content' in res:
+                        markdown_message = generate_markdown_message(res['content'])
+                        # print(f"Yielding markdown_message: {markdown_message}")  # 添加这一行
+                        # token_counter += 1
+                        yield f"data: {json.dumps({'data': markdown_message})}\n\n" # 将数据序列化为JSON字符串
+            finally:
+                # 如果生成器停止，仍然会执行
+                messages.append({"role": "assistant", "content": res['content']})
+                join_message = "".join([msg["content"] for msg in messages])
+                print("精简前messages:", messages)
+                rows = history_messages(user_id, prompt_template[0]) # 历史记录条数
+                if len(messages) > rows:
+                    messages = messages[-rows:] #对话仅保留最新rows条
+                if rows == 0:
+                    save_user_messages(user_id, []) # 清空历史记录
+                else:
+                    save_user_messages(user_id, messages)
+                # session['messages'] = messages
+                count_chars(join_message, user_id, messages)
             
     if stream_data:
         stream_data.pop(list(stream_data.keys())[0])  # 删除已使用的URL及相关信息              
@@ -224,3 +254,5 @@ def stream():
     session['tokens'] = 0
     return 'stream_get/' + unique_url                
 
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5858)
